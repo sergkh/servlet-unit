@@ -49,7 +49,7 @@ public class ServletsVar {
 
 			for (String result : results) {
 
-				if ((!paramsStr.isEmpty() || (paramsStr != null))) {
+				if (!isNullOrEmpty(paramsStr)) {
 					Pattern validationPattern = Pattern.compile("^(("
 							+ SINGLE_PARAM_PATTERN + "\\s*,\\s*)*"
 							+ SINGLE_PARAM_PATTERN + ")$");
@@ -82,7 +82,7 @@ public class ServletsVar {
 
 				String value = replacer.replaceVars(result);
 
-				if ((!value.isEmpty() || (value != null))) {
+				if (!isNullOrEmpty(value)) {
 					return value;
 				}
 			}
