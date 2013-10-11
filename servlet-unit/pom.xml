@@ -4,14 +4,14 @@
 	<groupId>org.servlet.unit</groupId>
 	<artifactId>org.servlet.unit</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.1</version>
+	<version>1.0.1-SNAPSHOT</version>
 
 	<name>${project.artifactId}</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<jdk.version>1.7</jdk.version>
+		<jdk.version>1.6</jdk.version>
 		<spring.version>3.2.3.RELEASE</spring.version>
 		<git.base.url>https://github.com/sergkh/servlet-unit.git</git.base.url>
 		<ftp.repo.url>sftp://192.168.2.101:9142/repository</ftp.repo.url>
