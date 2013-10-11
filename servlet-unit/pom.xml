@@ -4,7 +4,7 @@
 	<groupId>org.servlet.unit</groupId>
 	<artifactId>org.servlet.unit</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 
 	<name>${project.artifactId}</name>
 	<url>http://maven.apache.org</url>
