@@ -117,7 +117,7 @@ public abstract class AbstractServletTest {
 					List<String> values = new ArrayList<String>();
 
 					for (String value : function.getReturnValues()) {
-						if ((!value.isEmpty() || (value != null))) {
+						if (isNullOrEmpty(value)) {
 							values.add(value);
 						}
 					}
@@ -561,5 +561,9 @@ public abstract class AbstractServletTest {
 
 	public void setBundleXml(String bundleXml) {
 		this.bundleXml = bundleXml;
+	}
+	
+	public boolean isNullOrEmpty(String string) {
+		return (string == null || string.equals(""));
 	}
 }
