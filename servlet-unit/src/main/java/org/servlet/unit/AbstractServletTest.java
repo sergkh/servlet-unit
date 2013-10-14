@@ -18,7 +18,6 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,14 +30,21 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.servlet.unit.comparators.JsonComparator;
+import org.servlet.unit.comparators.TextComparator;
+import org.servlet.unit.comparators.XmlComparator;
 import org.servlet.unit.format.ServletTestDbVerify;
 import org.servlet.unit.format.ServletTestDefaults;
 import org.servlet.unit.format.ServletTestsSet;
 import org.servlet.unit.format.ServletsTestCase;
 import org.servlet.unit.format.ServletsVar;
 import org.servlet.unit.format.TestsBundle;
-import org.servlet.unit.format.TestsFunction;
 import org.servlet.unit.format.TestsBundle.Alias;
+import org.servlet.unit.format.TestsFunction;
+import org.servlet.unit.replacers.Base64ReplacementFunc;
+import org.servlet.unit.replacers.JpqlReplacementFunc;
+import org.servlet.unit.replacers.SqlReplacementFunc;
+import org.servlet.unit.replacers.VariablesInsertFunc;
 import org.servlet.unit.util.TestCase;
 import org.servlet.unit.util.TestCaseImpl;
 import org.simpleframework.xml.Serializer;
@@ -69,23 +75,30 @@ public abstract class AbstractServletTest {
 	@Before
 	public void initTest() throws Exception {
 		initContext();
-		replacers.addAll(getAppContext().getBeansOfType(ReplaceFunction.class)
-				.values());
+		/*replacers.addAll(getAppContext().getBeansOfType(ReplaceFunction.class).values());
 
 		Collections.sort(replacers, new Comparator<ReplaceFunction>() {
 			@Override
 			public int compare(ReplaceFunction o1, ReplaceFunction o2) {
 				return Integer.compare(o1.getOrder(), o2.getOrder());
 			}
-		});
+		});*/		
 
-		comparators.putAll(getAppContext().getBeansOfType(
-				TestResultComparator.class));
+		replacers.add(new Base64ReplacementFunc());
+		replacers.add(new JpqlReplacementFunc());
+		replacers.add(new SqlReplacementFunc());
+		replacers.add(new VariablesInsertFunc());
+		
+		comparators.put("json", new JsonComparator());
+		comparators.put("text", new TextComparator());
+		comparators.put("xml", new XmlComparator());
+		
+		/*comparators.putAll(getAppContext().getBeansOfType(
+				TestResultComparator.class));*/
 	}
 
 	protected abstract void initContext() throws Exception;
-
-	// @Theory
+	
 	@Test
 	public void testAllServlets() throws Exception {
 		List<ServletTestsSet> tests = readTestsSet(getBundleXml());
