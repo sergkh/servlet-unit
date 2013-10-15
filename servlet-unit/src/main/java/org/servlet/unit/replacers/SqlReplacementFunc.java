@@ -1,3 +1,5 @@
+package org.servlet.unit.replacers;
+
 /*
  * Copyright (c) 2011 by Global Money Ukraine.
  * All rights reserved.
@@ -8,42 +10,32 @@
  * Created on Dec 19, 2011, 3:12:32 PM
  * Author Sergey Khruschak
  */
-package org.servlet.unit.replacers;
 
-import org.servlet.unit.ReplaceFunction;
-import org.servlet.unit.util.TestCase;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
+import static org.junit.Assert.fail;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.fail;
+import org.servlet.unit.ReplaceFunction;
+import org.servlet.unit.util.TestCase;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * 
  * @author Sergey.Khruschak
  */
-@Component
 public class SqlReplacementFunc implements ReplaceFunction {
 
-	@Autowired
-	private ApplicationContext appContext;
-
 	private int order = 200;
+
+	private JdbcTemplate template;
 
 	public SqlReplacementFunc() {
 	}
 
-	private JdbcTemplate template;
-
-	@PostConstruct
-	private void init() {
+	public SqlReplacementFunc(ApplicationContext appContext) {
 		try {
 			template = appContext.getBean(JdbcTemplate.class);
 		} catch (NoSuchBeanDefinitionException nbe) {
