@@ -93,7 +93,7 @@ public class ServletsVar {
 		}
 	}
 
-	public boolean isNullOrEmpty(String string) {
-		return (string == null || string.equals(""));
+	private boolean isNullOrEmpty(String string) {
+		return (string == null || string.isEmpty());
 	}
 }

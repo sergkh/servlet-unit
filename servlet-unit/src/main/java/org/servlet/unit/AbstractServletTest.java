@@ -15,9 +15,12 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
+
 import java.lang.reflect.Field;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,11 +28,13 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 
 import javax.inject.Inject;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.servlet.unit.comparators.JsonComparator;
 import org.servlet.unit.comparators.TextComparator;
 import org.servlet.unit.comparators.XmlComparator;
@@ -47,6 +52,7 @@ import org.servlet.unit.replacers.SqlReplacementFunc;
 import org.servlet.unit.replacers.VariablesInsertFunc;
 import org.servlet.unit.util.TestCase;
 import org.servlet.unit.util.TestCaseImpl;
+
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 import org.springframework.beans.BeanWrapper;
@@ -55,6 +61,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+
 
 /**
  * Test for requests, all data got from xml file.
@@ -75,26 +82,22 @@ public abstract class AbstractServletTest {
 	@Before
 	public void initTest() throws Exception {
 		initContext();
-		/*replacers.addAll(getAppContext().getBeansOfType(ReplaceFunction.class).values());
-
+		
+		replacers.add(new VariablesInsertFunc());
+		replacers.add(new Base64ReplacementFunc());
+		replacers.add(new JpqlReplacementFunc(getAppContext()));
+		replacers.add(new SqlReplacementFunc(getAppContext()));
+	
 		Collections.sort(replacers, new Comparator<ReplaceFunction>() {
 			@Override
 			public int compare(ReplaceFunction o1, ReplaceFunction o2) {
 				return Integer.compare(o1.getOrder(), o2.getOrder());
 			}
-		});*/		
-
-		replacers.add(new Base64ReplacementFunc());
-		replacers.add(new JpqlReplacementFunc());
-		replacers.add(new SqlReplacementFunc());
-		replacers.add(new VariablesInsertFunc());
-		
+		});		
+	
 		comparators.put("json", new JsonComparator());
 		comparators.put("text", new TextComparator());
 		comparators.put("xml", new XmlComparator());
-		
-		/*comparators.putAll(getAppContext().getBeansOfType(
-				TestResultComparator.class));*/
 	}
 
 	protected abstract void initContext() throws Exception;
@@ -521,31 +524,7 @@ public abstract class AbstractServletTest {
 				params = params.substring(1);
 			test.setParameters(params);
 		}
-	}
-
-	public List<Alias> getAliases() {
-		return aliases;
-	}
-
-	public void setAliases(List<Alias> aliases) {
-		this.aliases = aliases;
-	}
-
-	public List<ReplaceFunction> getReplacers() {
-		return replacers;
-	}
-
-	public void setReplacers(List<ReplaceFunction> replacers) {
-		this.replacers = replacers;
-	}
-
-	public Map<String, TestResultComparator> getComparators() {
-		return comparators;
-	}
-
-	public void setComparators(Map<String, TestResultComparator> comparators) {
-		this.comparators = comparators;
-	}
+	}	
 
 	public ApplicationContext getAppContext() {
 		return appContext;
