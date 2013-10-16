@@ -121,6 +121,8 @@ public abstract class AbstractServletTest {
 
 					for (String value : function.getReturnValues()) {
 						if (isNullOrEmpty(value)) {
+							fail("Wrong return values");							
+						} else {
 							values.add(value);
 						}
 					}
