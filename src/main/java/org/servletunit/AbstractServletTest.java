@@ -127,8 +127,7 @@ public abstract class AbstractServletTest {
 						}
 					}
 
-					varsContext
-							.put(function.getName(), new ServletsVar(values));
+					varsContext.put(function.getName(), new ServletsVar(values));
 				}
 			}
 
@@ -142,9 +141,9 @@ public abstract class AbstractServletTest {
 	}
 
 	private void testServlet(ServletsTestCase test) throws Exception {
-		System.out.println("--- [ Executing " + test.getMethod() + " on "
-				+ test.getUrl() + ", from file: " + test.getFilename()
-				+ " ] ---");
+		System.out.println("--- [ Executing " + test.getMethod() + " on " + test.getUrl() +
+                            ", from file: " + test.getFilename() + " ] ---");
+
 		HttpServletRequest hsRequest = createRequestStub(test);
 		MockHttpServletResponse hsResponse = createResponseStub();
 		HttpServlet defaultServlet = createChain(test);
@@ -171,10 +170,8 @@ public abstract class AbstractServletTest {
 					+ " " + test.toString());
 		}
 
-		System.out.println("--- [ Request time is " + timeRequest
-				+ " miliseconds" + " of " + test.getMethod() + " on "
-				+ test.getUrl() + ", from file: " + test.getFilename()
-				+ " ] --");
+		System.out.println("--- [ Request time is " + timeRequest + " miliseconds" + " of " + test.getMethod() + " on " +
+                    test.getUrl() + ", from file: " + test.getFilename() + " ] --");
 
 		TestCase replacer = new TestCaseImpl(replacers, test);
 
@@ -186,6 +183,7 @@ public abstract class AbstractServletTest {
 		if (test.getResponseCode() == 200) {
 			compareResponse(test, response, hsResponse.getContentAsString());
 		}
+
 		/* validateDatabase(test.getDatabaseValidations(), test); */
 	}
 
@@ -309,10 +307,14 @@ public abstract class AbstractServletTest {
 			}
 		}
 
-		final String requestBody = replacer
-				.replaceVars(test.getRequest() != null ? test.getRequest() : "");
+		final String requestBody = replacer.replaceVars(test.getRequest() != null ? test.getRequest() : "");
+
 		hsRequest.setContent(requestBody.getBytes());
 		hsRequest.setPathInfo(replacer.replaceVars(test.getPathInfo()));
+
+        hsRequest.setRemoteAddr("127.0.0.1");
+        hsRequest.setRemoteHost("localhost");
+        hsRequest.setRemotePort(16794);
 
 		// very dummy implementation, fix it if u'll find some bugs
 		if (test.getParameters() != null && !test.getParameters().isEmpty()) {
