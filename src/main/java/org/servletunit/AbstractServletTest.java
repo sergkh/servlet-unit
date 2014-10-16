@@ -10,49 +10,11 @@ package org.servletunit;
  * Created on 3 July. 2011, 01:06:07
  * Author Vladimir Khruschak
  */
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import java.lang.reflect.Field;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-
-import javax.inject.Inject;
-
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import org.servletunit.comparators.JsonComparator;
-import org.servletunit.comparators.TextComparator;
-import org.servletunit.comparators.XmlComparator;
-import org.servletunit.format.ServletTestDbVerify;
-import org.servletunit.format.ServletTestDefaults;
-import org.servletunit.format.ServletTestsSet;
-import org.servletunit.format.ServletsTestCase;
-import org.servletunit.format.ServletsVar;
-import org.servletunit.format.TestsBundle;
+import org.servletunit.format.*;
 import org.servletunit.format.TestsBundle.Alias;
-import org.servletunit.format.TestsFunction;
-import org.servletunit.replacers.Base64ReplacementFunc;
-import org.servletunit.replacers.JpqlReplacementFunc;
-import org.servletunit.replacers.SqlReplacementFunc;
-import org.servletunit.replacers.VariablesInsertFunc;
-import org.servletunit.TestCase;
-import org.servletunit.TestCaseImpl;
-
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 import org.springframework.beans.BeanWrapper;
@@ -61,6 +23,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 
 /**
@@ -73,35 +48,35 @@ import org.springframework.mock.web.MockHttpServletResponse;
 public abstract class AbstractServletTest {
 
 	private String bundleXml;
-	private ApplicationContext appContext;
 
-	private List<Alias> aliases = Collections.emptyList();
-	private List<ReplaceFunction> replacers = new ArrayList<ReplaceFunction>();
-	private Map<String, TestResultComparator> comparators = new HashMap<String, TestResultComparator>();
+    private ApplicationContext appContext;
+
+    //public org.slf4j.Logger log = LoggerFactory.getLogger(getClass());
+
+    public List<Alias> aliases = Collections.emptyList();
+	public List<ReplaceFunction> replacers = new ArrayList<ReplaceFunction>();
+	public Map<String, TestResultComparator> comparators = new HashMap<String, TestResultComparator>();
 
 	@Before
 	public void initTest() throws Exception {
 		initContext();
-		
-		replacers.add(new VariablesInsertFunc());
-		replacers.add(new Base64ReplacementFunc());
-		replacers.add(new JpqlReplacementFunc(getAppContext()));
-		replacers.add(new SqlReplacementFunc(getAppContext()));
+
+        replacers.addAll(getAppContext().getBeansOfType(ReplaceFunction.class).values());
 	
 		Collections.sort(replacers, new Comparator<ReplaceFunction>() {
-			@Override
-			public int compare(ReplaceFunction o1, ReplaceFunction o2) {
-				return Integer.compare(o1.getOrder(), o2.getOrder());
-			}
-		});		
-	
-		comparators.put("json", new JsonComparator());
-		comparators.put("text", new TextComparator());
-		comparators.put("xml", new XmlComparator());
+            @Override
+            public int compare(ReplaceFunction o1, ReplaceFunction o2) {
+                return Integer.compare(o1.getOrder(), o2.getOrder());
+            }
+        });
+
+        comparators.putAll(getAppContext().getBeansOfType(TestResultComparator.class));
+
 	}
 
+
 	protected abstract void initContext() throws Exception;
-	
+
 	@Test
 	public void testAllServlets() throws Exception {
 		List<ServletTestsSet> tests = readTestsSet(getBundleXml());

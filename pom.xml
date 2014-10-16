@@ -4,7 +4,7 @@
 	<groupId>org.servlet-unit</groupId>
 	<artifactId>servlet-unit</artifactId>
 	<packaging>jar</packaging>
-	<version>1.1.1</version>
+	<version>1.1.5-SNAPSHOT</version>
 
 	<name>Servlet unit testing framework</name>
 	<url>http://maven.apache.org</url>
@@ -19,10 +19,9 @@
 
 	<scm>
 		<connection>scm:git:${git.base.url}</connection>
-	</scm>
+  </scm>
 
 	<dependencies>
-
 		<!-- Jackson -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -35,8 +34,14 @@
 			<version>2.2.3</version>
 		</dependency>
 
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.0.13</version>
+        </dependency>
+
 		<!-- Spring -->
-		<dependency>
+        <dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 			<version>${spring.version}</version>

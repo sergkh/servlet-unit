@@ -10,11 +10,13 @@ import org.servletunit.TestCase;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 /**
  * 
  * @author Sergey.Khruschak
  */
+@Component
 public class SqlReplacementFunc implements ReplaceFunction {
 
 	private int order = 200;
