@@ -6,6 +6,6 @@ public interface TestResultComparator {
 
 	public String getType();
 	
-	public void compareResponse(ServletsTestCase test, String expected, String actual);
+	public void compareResponse(ServletsTestCase test, String expected, String actual, TestScriptEngine engine);
 
 }

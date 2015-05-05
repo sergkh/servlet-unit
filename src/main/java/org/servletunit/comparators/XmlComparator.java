@@ -2,6 +2,7 @@ package org.servletunit.comparators;
 
 import static org.junit.Assert.assertEquals;
 
+import org.servletunit.TestScriptEngine;
 import org.servletunit.TestResultComparator;
 import org.servletunit.format.ServletsTestCase;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ public class XmlComparator implements TestResultComparator {
 	}
 
 	@Override
-	public void compareResponse(ServletsTestCase test, String expected, String actual) {
+	public void compareResponse(ServletsTestCase test, String expected, String actual, TestScriptEngine engine) {
 		expected = expected.replaceAll("\\s", ""); 
 		actual = actual.replaceAll("\\s", "");
 		

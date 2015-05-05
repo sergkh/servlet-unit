@@ -14,6 +14,7 @@ import org.simpleframework.xml.Root;
  * 
  * @author Vladimir Khruschak
  * @author Sergey Khruschak
+ * @author Yaroslav Derman
  */
 @Root
 @Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance")
@@ -22,8 +23,8 @@ public class ServletTestsSet {
 	@Attribute(name = "noNamespaceSchemaLocation", required = false)
 	private String noNamespaceSchemaLocation;
 
-	@ElementList(inline = true, entry = "func", required = false)
-	private List<TestsFunction> testFunctions = new ArrayList<TestsFunction>();
+	@ElementList(inline = true, entry = "script", required = false)
+	private List<String> testScripts = new ArrayList<String>();
 
 	@ElementList(inline = true, entry = "test", required = false)
 	private List<ServletsTestCase> testCases = new ArrayList<ServletsTestCase>();
@@ -42,15 +43,20 @@ public class ServletTestsSet {
 		this.testCases = testCases;
 	}
 
-	public void setTestFunctions(List<TestsFunction> testFunctions) {
-		this.testFunctions = testFunctions;
+	/**
+	 *
+	 * @return the scripts
+	 */
+	public List<String> getTestScripts() {
+		return testScripts;
 	}
 
 	/**
-	 * @return the testFunctions
+	 *
+	 * @param testScripts
 	 */
-	public List<TestsFunction> getTestFunctions() {
-		return testFunctions;
+	public void setTestScripts(List<String> testScripts) {
+		this.testScripts = testScripts;
 	}
 
 	/**

@@ -52,8 +52,6 @@ public class ServletsTestCase {
 	@ElementList(inline = true, entry = "check-db", required = false, type = ServletTestDbVerify.class)
 	private List<ServletTestDbVerify> databaseValidations;
 
-	private transient Map<String, ServletsVar> variables;
-
 	private transient String filename;
 
 	public ServletsTestCase() {
@@ -241,25 +239,6 @@ public class ServletsTestCase {
 	 */
 	public void setPropertiesMap(Map<String, String> propertiesMap) {
 		this.propertiesMap = propertiesMap;
-	}
-
-	/**
-	 * Returns variables map.
-	 * 
-	 * @return the variables
-	 */
-	public Map<String, ServletsVar> getVariables() {
-		return variables;
-	}
-
-	/**
-	 * Sets variables map.
-	 * 
-	 * @param variables
-	 *            the variables to set
-	 */
-	public void setVariables(Map<String, ServletsVar> variables) {
-		this.variables = variables;
 	}
 
 	/**

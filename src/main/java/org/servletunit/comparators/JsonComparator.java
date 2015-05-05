@@ -1,30 +1,27 @@
 package org.servletunit.comparators;
 
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Assert;
+import org.servletunit.TestScriptEngine;
+import org.servletunit.TestResultComparator;
+import org.servletunit.format.ServletsTestCase;
+import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.junit.Assert;
-import org.servletunit.TestResultComparator;
-import org.servletunit.format.ServletsTestCase;
-import org.servletunit.format.ServletsVar;
-import org.springframework.stereotype.Component;
+import static org.junit.Assert.fail;
 
 /**
  * Comparator for two Json objects.
  * 
  * @author Sergey.Khruschak
+ * @author Yaroslav.Derman
+ *
  */
 @Component("json")
 public class JsonComparator implements TestResultComparator {
@@ -42,7 +39,8 @@ public class JsonComparator implements TestResultComparator {
 
 	@Override
 	public void compareResponse(ServletsTestCase test, String expected,
-			String actual) {
+			String actual, TestScriptEngine engine) {
+
 		Map<String, Object> expNode = null;
 		try {
 			expNode = mapper.readValue(
@@ -72,7 +70,7 @@ public class JsonComparator implements TestResultComparator {
 		Map<String, Object> sortedActualNode = toSortedMap(actualNode);
 
 		try {
-			jsonCompare(test, sortedExpNode, sortedActualNode, "root");
+			jsonCompare(sortedExpNode, sortedActualNode, "root", engine);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			Assert.assertEquals("Json strings aren't same:" + test.toString(),
@@ -115,8 +113,8 @@ public class JsonComparator implements TestResultComparator {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void jsonCompare(ServletsTestCase test, Object exp, Object actual,
-			String context) {
+	private void jsonCompare(Object exp, Object actual,
+			String context, TestScriptEngine engine) {
 		if (exp instanceof Map) {
 			Map<String, Object> expMap = (Map<String, Object>) exp;
 
@@ -130,8 +128,9 @@ public class JsonComparator implements TestResultComparator {
 					throw new RuntimeException(
 							"Actual value doesn't contains key: " + e.getKey());
 				}
-				jsonCompare(test, e.getValue(), ((Map) actual).get(e.getKey()),
-						context + "." + e.getKey());
+
+				jsonCompare(e.getValue(), ((Map) actual).get(e.getKey()),
+						context + "." + e.getKey(), engine);
 			}
 
 		} else if (exp instanceof List) {
@@ -142,34 +141,23 @@ public class JsonComparator implements TestResultComparator {
 						+ actual + ", on: " + context);
 
 			for (int i = 0; i < expList.size(); i++) {
-				jsonCompare(test, expList.get(i), ((List) actual).get(i),
-						context);
+				jsonCompare(expList.get(i), ((List) actual).get(i),
+						context, engine);
 			}
 
 		} else {
-
-			if (!checkVar(String.valueOf(exp), String.valueOf(actual),
-					test.getVariables())
-					&& !"{*}".equals(exp)
-					&& !String.valueOf(exp).equals(String.valueOf(actual))) {
+			if (!checkVar(String.valueOf(exp), String.valueOf(actual), engine) && !"{*}".equals(exp)) {
 				throw new RuntimeException("Fields aren't equal:" + exp
 						+ " <> " + actual + ", on: " + context);
 			}
 		}
 	}
 
-	private static final Pattern VARS_PATTERN = Pattern.compile(
-			"@\\{([\\p{Alnum}\\.]*?)\\}", Pattern.MULTILINE);
+	public static boolean checkVar(String exp, String actual, TestScriptEngine engine) {
 
-	public static boolean checkVar(String exp, String actual,
-			Map<String, ServletsVar> vars) {
-		Matcher m = VARS_PATTERN.matcher(exp);
-		if (!m.matches())
-			return false;
+		String result = String.valueOf(engine.eval(exp, actual));
 
-		String var = m.group(1);
-		vars.put(var, new ServletsVar(actual));
+		return Boolean.valueOf(result) || result.equals(actual);
 
-		return true;
 	}
 }

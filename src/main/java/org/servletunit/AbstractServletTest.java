@@ -13,6 +13,7 @@ package org.servletunit;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.servletunit.engine.JsEngine;
 import org.servletunit.format.*;
 import org.servletunit.format.TestsBundle.Alias;
 import org.simpleframework.xml.Serializer;
@@ -54,26 +55,15 @@ public abstract class AbstractServletTest {
     //public org.slf4j.Logger log = LoggerFactory.getLogger(getClass());
 
     public List<Alias> aliases = Collections.emptyList();
-	public List<ReplaceFunction> replacers = new ArrayList<ReplaceFunction>();
 	public Map<String, TestResultComparator> comparators = new HashMap<String, TestResultComparator>();
 
 	@Before
 	public void initTest() throws Exception {
 		initContext();
 
-        replacers.addAll(getAppContext().getBeansOfType(ReplaceFunction.class).values());
-	
-		Collections.sort(replacers, new Comparator<ReplaceFunction>() {
-            @Override
-            public int compare(ReplaceFunction o1, ReplaceFunction o2) {
-                return Integer.compare(o1.getOrder(), o2.getOrder());
-            }
-        });
-
         comparators.putAll(getAppContext().getBeansOfType(TestResultComparator.class));
 
 	}
-
 
 	protected abstract void initContext() throws Exception;
 
@@ -85,41 +75,28 @@ public abstract class AbstractServletTest {
 		if (tests == null)
 			return;
 
+		TestScriptEngine engine = new JsEngine(getAppContext());
+
 		for (ServletTestsSet set : tests) {
-			Map<String, ServletsVar> varsContext = new HashMap<String, ServletsVar>();
 
-			List<TestsFunction> functions = set.getTestFunctions();
-
-			if (functions != null) {
-				for (TestsFunction function : functions) {
-					List<String> values = new ArrayList<String>();
-
-					for (String value : function.getReturnValues()) {
-						if (isNullOrEmpty(value)) {
-							fail("Wrong return values");							
-						} else {
-							values.add(value);
-						}
-					}
-
-					varsContext.put(function.getName(), new ServletsVar(values));
-				}
-			}
+			engine.init(set);
 
 			for (ServletsTestCase test : set.getTestCases()) {
 				parseParams(test);
 				loadDefaults(test, set.getDefaults());
-				test.setVariables(varsContext);
-				testServlet(test);
+				testServlet(test, engine);
 			}
+
+			engine.clearContext();
 		}
 	}
 
-	private void testServlet(ServletsTestCase test) throws Exception {
+	private void testServlet(ServletsTestCase test, TestScriptEngine engine) throws Exception {
 		System.out.println("--- [ Executing " + test.getMethod() + " on " + test.getUrl() +
                             ", from file: " + test.getFilename() + " ] ---");
 
-		HttpServletRequest hsRequest = createRequestStub(test);
+		HttpServletRequest hsRequest = createRequestStub(test, engine);
+
 		MockHttpServletResponse hsResponse = createResponseStub();
 		HttpServlet defaultServlet = createChain(test);
 		// actually does the servlet call
@@ -148,15 +125,11 @@ public abstract class AbstractServletTest {
 		System.out.println("--- [ Request time is " + timeRequest + " miliseconds" + " of " + test.getMethod() + " on " +
                     test.getUrl() + ", from file: " + test.getFilename() + " ] --");
 
-		TestCase replacer = new TestCaseImpl(replacers, test);
-
-		final String response = replacer.replaceVars(test.getResponseBody());
-
 		assertEquals("Servlet response status doesn't match: " + test,
 				test.getResponseCode(), hsResponse.getStatus());
 
 		if (test.getResponseCode() == 200) {
-			compareResponse(test, response, hsResponse.getContentAsString());
+			compareResponse(test, test.getResponseBody(), hsResponse.getContentAsString(), engine);
 		}
 
 		/* validateDatabase(test.getDatabaseValidations(), test); */
@@ -266,26 +239,28 @@ public abstract class AbstractServletTest {
 	 * @return mock servlet request instance.
 	 * @throws IOException
 	 */
-	private HttpServletRequest createRequestStub(ServletsTestCase test)
+	private HttpServletRequest createRequestStub(ServletsTestCase test, TestScriptEngine engine)
 			throws IOException {
-		TestCase replacer = new TestCaseImpl(replacers, test);
 
 		MockHttpServletRequest hsRequest = new MockHttpServletRequest(
-				test.getMethod(), replacer.replaceVars(test.getPathInfo()));
+				test.getMethod(),
+				(String)engine.eval(test.getPathInfo(), null)
+		);
 
 		Map<String, String> headers = test.getHeaders();
 
 		if (headers != null) {
 			for (Entry<String, String> header : headers.entrySet()) {
 				hsRequest.addHeader(header.getKey(),
-						replacer.replaceVars(header.getValue()));
+						String.valueOf(engine.eval(header.getValue(), null))
+				);
 			}
 		}
 
-		final String requestBody = replacer.replaceVars(test.getRequest() != null ? test.getRequest() : "");
+		final String requestBody = engine.eval(test.getRequest() != null ? test.getRequest() : "", null).toString();
 
 		hsRequest.setContent(requestBody.getBytes());
-		hsRequest.setPathInfo(replacer.replaceVars(test.getPathInfo()));
+		hsRequest.setPathInfo(engine.eval(test.getPathInfo(), null).toString());
 
         hsRequest.setRemoteAddr("127.0.0.1");
         hsRequest.setRemoteHost("localhost");
@@ -307,14 +282,15 @@ public abstract class AbstractServletTest {
 	}
 
 	private void compareResponse(ServletsTestCase test, String expected,
-			String actual) {
+			String actual, TestScriptEngine engine) {
+
 		String respType = test.getResponse().getType();
 
 		if (!comparators.containsKey(respType)) {
 			fail("Unsupported response type: " + respType);
 		}
 
-		comparators.get(respType).compareResponse(test, expected, actual);
+		comparators.get(respType).compareResponse(test, expected, actual, engine);
 	}	
 
 	/**
@@ -349,6 +325,7 @@ public abstract class AbstractServletTest {
 					c.setFilename(testName);
 				}
 
+				//todo validate set via .xsd
 				tests.add(set);
 				bundleStream.close();
 			}

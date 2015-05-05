@@ -1,6 +1,7 @@
 package org.servletunit.comparators;
 
 import org.junit.Assert;
+import org.servletunit.TestScriptEngine;
 import org.servletunit.TestResultComparator;
 import org.servletunit.format.ServletsTestCase;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class TextComparator implements TestResultComparator {
 	}
 	
 	@Override
-	public void compareResponse(ServletsTestCase test, String expected, String actual) {
+	public void compareResponse(ServletsTestCase test, String expected, String actual, TestScriptEngine engine) {
 		expected = expected.replaceAll("\\s", ""); 
 		actual = actual.replaceAll("\\s", "");
 		
