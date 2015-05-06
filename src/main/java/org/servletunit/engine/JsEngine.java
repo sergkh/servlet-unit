@@ -60,27 +60,13 @@ public class JsEngine implements TestScriptEngine {
 
     /**
      *
-     * @param requestData - java script body =walletUuid or var a = getEmailCode(uuid); a
+     * @param requestData - java script body
      * @param actualData - value that must be put into bindings
      * @return
      */
-    /*{
-				"transactionId":"@{paymentId}",
-				"source":"{*}",
-				"destination":"{*}",
-				"amount":100000,
-				"balance":300000,
-				"timestamp":"{*}",
-				"status" : 0
-			}
-	*/
     public Object eval(String requestData, String actualData) {
 
-        //System.out.println("**********" + requestData);
-
         if (!isNullOrEmpty(requestData)) {
-
-            //System.out.println("**********" + requestData);
 
             Matcher m = Pattern.compile("\\#(.*?)\\#",
                     Pattern.MULTILINE).matcher(requestData);
@@ -88,10 +74,6 @@ public class JsEngine implements TestScriptEngine {
             StringBuffer sb = new StringBuffer();
 
             while (m.find()) {
-
-                //String script = scriptCreation(m.group(1));
-                //System.out.println("************ Replace Group 1 " + m.group(1));
-                //System.out.println("************ Replace script " + script);
 
                 String body2 = null;
 
@@ -101,20 +83,16 @@ public class JsEngine implements TestScriptEngine {
                     body2 = m.group(1);
                 }
 
-                //return getEmailCode(walletUuid)
                 String body = scriptCreation(body2);
                 String function = "function __exec(arg){" + injectContext(body) + "}";
-
-                //System.out.println("/0/0/0/0/0/0/0/" + function + ", arg " + actualData);
 
                 try {
                     scriptEngine.eval(function);
                     Object result = ((Invocable) scriptEngine).invokeFunction("__exec", actualData);
-                    //System.out.println("/0/0/0/0/0/0/0/" + result);
                     m.appendReplacement(sb, String.valueOf(result));
                 } catch (ScriptException e) {
                     e.printStackTrace();
-                }  catch (NoSuchMethodException e) {
+                } catch (NoSuchMethodException e) {
                     e.printStackTrace();
                 }
             }
@@ -126,36 +104,6 @@ public class JsEngine implements TestScriptEngine {
         }
 
         return requestData;
-
-        /*try {
-            // evaluate JavaScript code from String
-
-            if (request.startsWith("=") && arg != null) {
-                request = String.format("%s = arg; true;", request.replace("=", ""));
-            }
-
-            //return getEmailCode(walletUuid)
-            String body = scriptCreation(request.trim());
-            String function = "function __exec(arg){ " + injectContext(body) + "}";
-
-            System.out.println("/0/0/0/0/0/0/0/" + function + ", arg " + arg);
-
-            scriptEngine.eval(function);
-
-            Object result = ((Invocable) scriptEngine).invokeFunction("__exec", arg);
-
-            System.out.println("Invoke result " + result);
-
-            return result;
-        } catch (ScriptException se) {
-            se.printStackTrace();
-            fail("Error execute script: " + request);
-        } catch (NoSuchMethodException ne) {
-            ne.printStackTrace();
-            fail("No such method found: " + ne.getMessage());
-        }
-
-        return null;*/
     }
 
     private String injectContext(String body) {
@@ -198,18 +146,11 @@ public class JsEngine implements TestScriptEngine {
 
         StringBuffer sb = new StringBuffer();
 
-        //System.out.println("+++++++++++++ Script Creation " + requestData);
-
         if (m.find()) {
             m.appendReplacement(sb, String.valueOf("; return " + m.group(1).trim() + ";"));
-            //System.out.println("Find" + sb.toString());
         } else {
             sb.append(" return " + requestData.trim() + ";");
-            //System.out.println("No Find" + sb.toString());
         }
-
-        //m.appendTail(sb);
-        //System.out.println("--------Result script " + sb.toString());
 
         return sb.toString();
     }
