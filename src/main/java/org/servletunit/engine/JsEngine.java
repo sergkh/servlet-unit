@@ -26,9 +26,7 @@ public class JsEngine implements TestScriptEngine {
 
     private ApplicationContext springContext;
 
-    public ScriptEngine scriptEngine;
-
-    private static final Pattern JS_PATTERN = Pattern.compile("\\#(.*?)\\#", Pattern.MULTILINE);
+    private ScriptEngine scriptEngine;
 
     @Autowired
     public JsEngine(ApplicationContext appContext) {
@@ -37,7 +35,8 @@ public class JsEngine implements TestScriptEngine {
 
     @Override
     public void init(ServletTestsSet test) {
-        scriptEngine = new ScriptEngineManager().getEngineByName("JavaScript");
+
+        scriptEngine = new ScriptEngineManager(null).getEngineByName("JavaScript");
         scriptEngine.put("__ctx", this);
 
         if (test.getTestScripts() != null) {
@@ -54,7 +53,7 @@ public class JsEngine implements TestScriptEngine {
 
     @Override
     public void clearContext() {
-        scriptEngine = new ScriptEngineManager().getEngineByName("JavaScript");
+        scriptEngine = new ScriptEngineManager(null).getEngineByName("JavaScript");
         scriptEngine.put("__ctx", this);
     }
 
@@ -123,7 +122,7 @@ public class JsEngine implements TestScriptEngine {
 
     private String replaceBeanName(String name) {
 
-        if (springContext.containsBean(name)) {
+        if (getSpringContext().containsBean(name)) {
             return "__ctx.byName('" + name + "')";
         }  else {
             // not a spring bean, just keep it as it was
@@ -133,7 +132,7 @@ public class JsEngine implements TestScriptEngine {
 
     public Object byName(String s) {
         try {
-            return springContext.getBean(s);
+            return getSpringContext().getBean(s);
         } catch (NoSuchBeanDefinitionException notFoudEx) {
             return null;
         }
@@ -165,5 +164,13 @@ public class JsEngine implements TestScriptEngine {
 
     public void setScriptEngine(ScriptEngine scriptEngine) {
         this.scriptEngine = scriptEngine;
+    }
+
+    public ApplicationContext getSpringContext() {
+        return springContext;
+    }
+
+    public void setSpringContext(ApplicationContext springContext) {
+        this.springContext = springContext;
     }
 }
